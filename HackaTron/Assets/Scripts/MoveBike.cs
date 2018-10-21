@@ -63,6 +63,7 @@ public class MoveBike : MonoBehaviour {
 		if(col != currentWall){
 			GameObject.Find("player_pink").gameObject.GetComponent<MoveBike>().GameOver();
 			GameObject.Find("player_cyan").gameObject.GetComponent<MoveBike>().GameOver();
+			Destroy(GameObject.Find("Wall"));
 			gameOverText.SetActive(true);
 			restartText.SetActive(true);
 			waitForRestart = true;
