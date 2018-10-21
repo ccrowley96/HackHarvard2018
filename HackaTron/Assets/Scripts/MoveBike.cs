@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MoveBike : MonoBehaviour {
 	
@@ -9,6 +10,16 @@ public class MoveBike : MonoBehaviour {
 	public KeyCode downKey;
 	public KeyCode leftKey;
 	public KeyCode rightKey;
+	public GameObject gameOverText;
+	public GameObject restartText;
+	private bool waitForRestart = false;
+	private bool gameOver = false;
+
+	enum direction {up, down, left, right};
+	direction heading = direction.up;
+
+	float thrust = 8f;
+	float turnPenalty = .8f;
 
 	// Walls
 	public GameObject wallPrefab;
@@ -39,40 +50,89 @@ public class MoveBike : MonoBehaviour {
 		else // scale in y
 			col.transform.localScale = new Vector2(1, dist + 1);
 	}
+
+	public void GameOver(){
+		gameOver = true;
+		GetComponent<Rigidbody2D>().velocity = new Vector2(0,0);
+
+	}
 	
 	// Check for collision
 	void OnTriggerEnter2D(Collider2D col){
 		// If collider isn't current wall, kill player
 		if(col != currentWall){
-			Debug.Log("Player Lost: " + name);
-			Destroy(gameObject);
+			GameObject.Find("player_pink").gameObject.GetComponent<MoveBike>().GameOver();
+			GameObject.Find("player_cyan").gameObject.GetComponent<MoveBike>().GameOver();
+			gameOverText.SetActive(true);
+			restartText.SetActive(true);
+			waitForRestart = true;
 		}
 	}
+
 
 	// Use this for initialization
 	void Start () {
 		// Set initial updwards velocity
 		GetComponent<Rigidbody2D>().velocity = Vector2.up * speed;
 		SpawnWall();
+		gameOverText.SetActive(false);
+		restartText.SetActive(false);
+		waitForRestart = false;
+		gameOver = false;
+	}
+
+	void FixedUpdate(){
+		if(!gameOver){
+			switch (heading)
+			{
+				case direction.up:
+					GetComponent<Rigidbody2D>().AddRelativeForce(Vector2.up * thrust);
+					break;
+				case direction.down:
+					GetComponent<Rigidbody2D>().AddRelativeForce(Vector2.down * thrust);
+					break;
+				case direction.right:
+					GetComponent<Rigidbody2D>().AddRelativeForce(Vector2.right * thrust);
+					break;
+				case direction.left:
+					GetComponent<Rigidbody2D>().AddRelativeForce(Vector2.left * thrust);
+					break;
+				default:
+					break;
+			}
+			speed = GetComponent<Rigidbody2D>().velocity.magnitude;
+			FitColliderBetween(currentWall,lastWallEnd, transform.position);
+		}
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		// Check for key presses and modify velocity accordingly
-		if(Input.GetKeyDown(upKey)){
-			GetComponent<Rigidbody2D>().velocity = Vector2.up * speed;
-			SpawnWall();
-		} else if(Input.GetKeyDown(downKey)){
-			GetComponent<Rigidbody2D>().velocity = Vector2.down * speed;
-			SpawnWall();
-		} else if(Input.GetKeyDown(leftKey)){
-			GetComponent<Rigidbody2D>().velocity = Vector2.left * speed;
-			SpawnWall();
-		} else if(Input.GetKeyDown(rightKey)){
-			GetComponent<Rigidbody2D>().velocity = Vector2.right * speed;
-			SpawnWall();
-		}
+		if(!gameOver){
 
-		FitColliderBetween(currentWall, lastWallEnd, transform.position);
+			// Check for key presses and modify velocity accordingly
+			if(Input.GetKeyDown(upKey) && heading != direction.down && heading != direction.up){
+				GetComponent<Rigidbody2D>().velocity = Vector2.up * speed * turnPenalty;
+				SpawnWall();
+				heading = direction.up;
+			} else if(Input.GetKeyDown(downKey) && heading != direction.up && heading != direction.down){
+				GetComponent<Rigidbody2D>().velocity = Vector2.down * speed * turnPenalty;
+				SpawnWall();
+				heading = direction.down;
+			} else if(Input.GetKeyDown(leftKey) && heading != direction.right && heading != direction.left){
+				GetComponent<Rigidbody2D>().velocity = Vector2.left * speed * turnPenalty;
+				SpawnWall();
+				heading = direction.left;
+			} else if(Input.GetKeyDown(rightKey) && heading != direction.left && heading != direction.right){
+				GetComponent<Rigidbody2D>().velocity = Vector2.right * speed * turnPenalty;
+				SpawnWall();
+				heading = direction.right;
+			}
+			FitColliderBetween(currentWall,lastWallEnd, transform.position);
+		}
+		if(Input.GetKeyDown(KeyCode.Space) && waitForRestart){
+			waitForRestart = false;
+			SceneManager.LoadScene(0);
+		}
+		
 	}
 }
