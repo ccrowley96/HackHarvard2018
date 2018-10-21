@@ -8,6 +8,7 @@ public class MoveBike : MonoBehaviourPun {
 	
 	[Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
 	public static GameObject LocalPlayerInstance;
+	
 	//Move Keys
 	public KeyCode upKey;
 	public KeyCode downKey;

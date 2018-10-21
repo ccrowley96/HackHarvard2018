@@ -562,6 +562,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxPlayersPerRoom: 4
+  playerPrefab: {fileID: 1566686509377966, guid: 9158b36d0313448a0a774a07c60845c3,
+    type: 2}
   controlPanel: {fileID: 466774510}
   progressLabel: {fileID: 801224990}
 --- !u!4 &1349784484

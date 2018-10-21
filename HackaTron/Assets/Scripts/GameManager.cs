@@ -15,6 +15,8 @@ public class GameManager : MonoBehaviourPunCallbacks
 
 	[Tooltip("The prefab to use for representing the player")]
 	public GameObject playerPrefab;
+	// HasSpawned
+	bool HasSpawned = false;
 
 	//Game Manager
 	public static GameManager Instance;
@@ -45,7 +47,6 @@ public class GameManager : MonoBehaviourPunCallbacks
 	public override void OnPlayerLeftRoom(Player other)
 	{
 		Debug.LogFormat("OnPlayerLeftRoom() {0}", other.NickName); // seen when other disconnects
-
 
 		if (PhotonNetwork.IsMasterClient)
 		{
@@ -90,11 +91,12 @@ public class GameManager : MonoBehaviourPunCallbacks
 		}
 		else
 		{
-			if (MoveBike.LocalPlayerInstance == null)
+			if (MoveBike.LocalPlayerInstance == null && !HasSpawned)
 			{
 				Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
 				// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
 				PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector2(UnityEngine.Random.Range(-30.0f, 30.0f),0f), Quaternion.identity, 0);
+				HasSpawned = true;
 			} else
 			{
 				Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
